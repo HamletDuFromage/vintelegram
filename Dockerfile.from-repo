@@ -5,8 +5,8 @@ FROM python:3.11-alpine
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-# Create a non-root user
-RUN groupadd -r botuser && useradd -r -g botuser botuser
+# Create a non-root user (Alpine Linux commands)
+RUN addgroup -g 1000 botuser && adduser -D -s /bin/sh -u 1000 -G botuser botuser
 
 # Install git for cloning the repository
 RUN apk add --no-cache git
