@@ -49,7 +49,7 @@ TELEGRAM_BOT_TOKEN=your_bot_token_here
 
 ### 3. Configuration
 
-The bot uses `config.yaml` for configuration. You can customize:
+The bot uses environment variables for configuration. You can customize:
 
 - Check interval (default: 5 minutes)
 - Maximum items per check
@@ -96,9 +96,9 @@ vintelegram/
 ├── bot.py                 # Main bot application
 ├── database.py            # SQLite database operations
 ├── db_config_manager.py   # Database-backed configuration management
-├── config_manager.py      # YAML-based configuration (legacy)
+
 ├── vinted_client.py       # Vinted API client
-├── config.yaml            # Bot configuration
+
 ├── vinted_bot.db          # SQLite database (auto-created)
 ├── requirements.txt       # Python dependencies
 ├── env.example            # Environment variables template
@@ -117,10 +117,10 @@ Each chat (group or private) can configure:
 
 ### Bot Settings
 
-Global bot settings in `config.yaml`:
-- `check_interval`: Time between checks (seconds)
-- `max_items_per_check`: Maximum items to check per URL
-- `default_language`: Default language for messages
+Global bot settings via environment variables:
+- `CHECK_INTERVAL`: Time between checks (seconds)
+- `MAX_ITEMS_PER_CHECK`: Maximum items to check per URL
+- `DEFAULT_LANGUAGE`: Default language for messages
 
 ## Features in Detail
 

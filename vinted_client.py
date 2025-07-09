@@ -52,7 +52,7 @@ class VintedClient:
             logger.error(f"Error getting new items for URL {url}: {e}")
             return []
     
-    def format_item_message(self, item: Any) -> str:
+    def format_item_message(self, item: Any, search_url: str = "") -> str:
         """Format an item for Telegram message."""
         try:
             title = item.title
@@ -71,6 +71,9 @@ class VintedClient:
             
             if photo_url:
                 message += f"📸 [Photo]({photo_url})\n"
+            
+            if search_url:
+                message += f"🔍 [Search URL]({search_url})\n"
             
             return message
             

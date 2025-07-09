@@ -13,7 +13,6 @@ class DBConfigManager:
     
     def _load_config(self) -> Dict[str, Any]:
         """Load configuration from environment variables and defaults."""
-        # No longer need config.yaml - everything comes from environment variables
         return self._get_default_config()
     
     def _get_default_config(self) -> Dict[str, Any]:
@@ -87,7 +86,7 @@ class DBConfigManager:
         """Get seen item IDs for a chat."""
         return self.db.get_seen_items(chat_id)
     
-    def add_seen_item(self, chat_id: int, item_id: str, url: str = None):
+    def add_seen_item(self, chat_id: int, item_id: str, url: str = ""):
         """Add an item ID to the seen items for a chat."""
         if url:
             return self.db.add_seen_item(chat_id, item_id, url)

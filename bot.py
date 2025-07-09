@@ -32,7 +32,7 @@ class VintedBot:
         self.bot_token = self.config_manager.get_bot_token()
         
         if not self.bot_token:
-            raise ValueError("Bot token not found! Please set TELEGRAM_BOT_TOKEN environment variable or add it to config.yaml")
+            raise ValueError("Bot token not found! Please set TELEGRAM_BOT_TOKEN environment variable")
         
         self.application = Application.builder().token(self.bot_token).build()
         self._setup_handlers()
@@ -206,7 +206,7 @@ To get started, send me a Vinted search URL or use /add <url>
                 return
             
             for item in items:
-                message = self.vinted_client.format_item_message(item)
+                message = self.vinted_client.format_item_message(item, url)
                 await update.message.reply_text(message, parse_mode='Markdown')  # type: ignore
                 
         except Exception as e:
@@ -331,7 +331,7 @@ To get started, send me a Vinted search URL or use /add <url>
                 
                 # Send items as separate messages
                 for item in items:
-                    message = self.vinted_client.format_item_message(item)
+                    message = self.vinted_client.format_item_message(item, url)
                     await context.bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown')
                 
                 await query.edit_message_text(f"✅ Found {len(items)} items! Check the messages above.")  # type: ignore
@@ -366,7 +366,7 @@ To get started, send me a Vinted search URL or use /add <url>
                         if new_items:
                             # Send notifications for new items
                             for item in new_items:
-                                message = self.vinted_client.format_item_message(item)
+                                message = self.vinted_client.format_item_message(item, url)
                                 await context.bot.send_message(
                                     chat_id=chat_id,
                                     text=f"🆕 New item found!\n\n{message}",
