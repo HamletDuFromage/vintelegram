@@ -1,7 +1,7 @@
 services:
   vinted-bot:
     build: .
-    container_name: vinted-telegram-bot
+    container_name: vintelegram
     restart: unless-stopped
     environment:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}

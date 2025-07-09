@@ -45,7 +45,7 @@ LOG_LEVEL=INFO
 
 ### Build the image:
 ```bash
-docker build -t vinted-telegram-bot .
+docker build -t vintelegram .
 ```
 
 ### Run with Docker:
@@ -55,7 +55,7 @@ docker run -d \
   --restart unless-stopped \
   -e TELEGRAM_BOT_TOKEN=your_token_here \
   -v $(pwd)/data:/app/data \
-  vinted-telegram-bot
+  vintelegram
 ```
 
 ### Run with Docker Compose:
@@ -94,7 +94,7 @@ docker-compose logs -f vinted-bot
 
 ### Access the container:
 ```bash
-docker exec -it vinted-telegram-bot bash
+docker exec -it vintelegram bash
 ```
 
 ### Reset the database:
