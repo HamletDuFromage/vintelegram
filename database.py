@@ -7,8 +7,13 @@ import os
 logger = logging.getLogger(__name__)
 
 class Database:
-    def __init__(self, db_path: str = "vinted_bot.db"):
+    def __init__(self, db_path: str = "data/vinted_bot.db"):
         self.db_path = db_path
+        # Ensure the directory exists
+        import os
+        db_dir = os.path.dirname(self.db_path)
+        if db_dir and db_dir != "":  # Only create directory if there is a directory path
+            os.makedirs(db_dir, exist_ok=True)
         self.init_database()
     
     def init_database(self):
@@ -22,7 +27,6 @@ class Database:
                     CREATE TABLE IF NOT EXISTS chats (
                         chat_id INTEGER PRIMARY KEY,
                         name TEXT,
-                        notifications BOOLEAN DEFAULT 1,
                         paused BOOLEAN DEFAULT 0,
                         max_price REAL,
                         min_price REAL,
@@ -169,7 +173,7 @@ class Database:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute('''
-                    SELECT c.chat_id, c.name, c.notifications, c.paused, c.max_price, c.min_price,
+                    SELECT c.chat_id, c.name, c.paused, c.max_price, c.min_price,
                            COUNT(s.url) as url_count
                     FROM chats c
                     LEFT JOIN search_urls s ON c.chat_id = s.chat_id
@@ -178,10 +182,9 @@ class Database:
                 
                 chats = {}
                 for row in cursor.fetchall():
-                    chat_id, name, notifications, paused, max_price, min_price, url_count = row
+                    chat_id, name, paused, max_price, min_price, url_count = row
                     chats[chat_id] = {
                         'name': name,
-                        'notifications': bool(notifications),
                         'paused': bool(paused),
                         'max_price': max_price,
                         'min_price': min_price,
@@ -215,7 +218,7 @@ class Database:
             logger.error(f"Error adding seen item: {e}")
             return False
     
-    def get_seen_items(self, chat_id: int, url: str = None) -> List[str]:
+    def get_seen_items(self, chat_id: int, url: str = "") -> List[str]:
         """Get seen item IDs for a chat (optionally filtered by URL)."""
         try:
             with sqlite3.connect(self.db_path) as conn:
@@ -248,7 +251,7 @@ class Database:
                 cursor = conn.cursor()
                 
                 # Build update query dynamically
-                valid_fields = ['name', 'notifications', 'paused', 'max_price', 'min_price']
+                valid_fields = ['name', 'paused', 'max_price', 'min_price']
                 updates = []
                 values = []
                 

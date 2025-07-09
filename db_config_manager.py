@@ -7,7 +7,7 @@ from database import Database
 logger = logging.getLogger(__name__)
 
 class DBConfigManager:
-    def __init__(self, db_path: str = "vinted_bot.db"):
+    def __init__(self, db_path: str = "data/vinted_bot.db"):
         self.db = Database(db_path)
         self.config = self._load_config()
     

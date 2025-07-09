@@ -23,7 +23,7 @@ A Telegram bot that monitors Vinted search results and notifies chats about new 
 1. Clone this repository:
 ```bash
 git clone <repository-url>
-cd vinted-telegram-bot
+cd vintelegram
 ```
 
 2. Create and activate a virtual environment:
@@ -92,7 +92,7 @@ https://www.vinted.fr/vetements?catalog_ids[]=5&brand_ids[]=53
 ## File Structure
 
 ```
-vinted-telegram-bot/
+vintelegram/
 ├── bot.py                 # Main bot application
 ├── database.py            # SQLite database operations
 ├── db_config_manager.py   # Database-backed configuration management

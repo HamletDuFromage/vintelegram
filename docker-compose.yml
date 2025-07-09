@@ -1,0 +1,13 @@
+services:
+  vinted-bot:
+    build: .
+    container_name: vinted-telegram-bot
+    restart: unless-stopped
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - CHECK_INTERVAL=${CHECK_INTERVAL:-300}
+      - MAX_ITEMS_PER_CHECK=${MAX_ITEMS_PER_CHECK:-10}
+      - DEFAULT_LANGUAGE=${DEFAULT_LANGUAGE:-en}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - ./data:/app/data 
