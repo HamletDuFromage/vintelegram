@@ -13,12 +13,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Create a non-root user for security (Alpine Linux commands)
-RUN addgroup -g 1000 bot && \
-    adduser -D -s /bin/sh -u 1000 -G bot bot && \
-    chown -R bot:bot /app
-USER bot
-
 # Create directory for database
 RUN mkdir -p /app/data
 

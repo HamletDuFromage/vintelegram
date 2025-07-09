@@ -1,6 +1,8 @@
 services:
   vinted-bot:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.from-repo
     container_name: vintelegram
     restart: unless-stopped
     environment:

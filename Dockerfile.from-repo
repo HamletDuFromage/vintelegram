@@ -5,9 +5,6 @@ FROM python:3.11-alpine
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-# Create a non-root user (Alpine Linux commands)
-RUN addgroup -g 1000 botuser && adduser -D -s /bin/sh -u 1000 -G botuser botuser
-
 # Install git for cloning the repository
 RUN apk add --no-cache git
 
@@ -20,11 +17,8 @@ RUN git clone https://github.com/HamletDuFromage/vintelegram.git .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Create directory for database and set permissions
-RUN mkdir -p /app/data && chown -R botuser:botuser /app
-
-# Switch to non-root user
-USER botuser
+# Create directory for database
+RUN mkdir -p /app/data
 
 # Create volume for database persistence
 VOLUME ["/app/data"]
