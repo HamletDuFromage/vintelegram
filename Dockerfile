@@ -4,8 +4,6 @@ FROM python:3.11-alpine
 # Set working directory
 WORKDIR /app
 
-
-
 # Copy requirements first for better caching
 COPY requirements.txt .
 

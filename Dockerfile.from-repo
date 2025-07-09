@@ -1,0 +1,33 @@
+# Use Python 3.11 alpine image
+FROM python:3.11-alpine
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Create a non-root user
+RUN groupadd -r botuser && useradd -r -g botuser botuser
+
+# Install git for cloning the repository
+RUN apk add --no-cache git
+
+# Set working directory
+WORKDIR /app
+
+# Clone the repository (replace with your actual GitHub repo URL)
+RUN git clone https://github.com/HamletDuFromage/vintelegram.git .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Create directory for database and set permissions
+RUN mkdir -p /app/data && chown -R botuser:botuser /app
+
+# Switch to non-root user
+USER botuser
+
+# Create volume for database persistence
+VOLUME ["/app/data"]
+
+# Run the bot
+CMD ["python", "bot.py"] 
