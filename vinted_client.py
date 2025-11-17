@@ -14,43 +14,33 @@ class VintedClient:
     
     def search_items(self, url: str, max_items: int = 10) -> List[Any]:
         """Search for items using a Vinted URL."""
-        try:
-            # Use pyVinted items.search method directly with URL
-            items = self.vinted.items.search(url, max_items, 1)
-            
-            logger.info(f"Found {len(items)} items for URL: {url}")
-            return items
-            
-        except Exception as e:
-            logger.error(f"Error searching items for URL {url}: {e}")
-            return []
+        # Use pyVinted items.search method directly with URL
+        items = self.vinted.items.search(url, max_items, 1)
+        
+        logger.info(f"Found {len(items)} items for URL: {url}")
+        return items
     
     def get_new_items(self, url: str, chat_id: int, max_items: int = 10) -> List[Any]:
         """Get new items since last check for a specific URL."""
-        try:
-            items = self.search_items(url, max_items)
-            
-            if not self.config_manager:
-                logger.warning("No config manager provided, returning all items as new")
-                return items
-            
-            # Get seen items for this chat
-            seen_items = set(self.config_manager.get_seen_items(chat_id))
-            
-            # Filter items by ID to avoid duplicates
-            new_items = []
-            for item in items:
-                if str(item.id) not in seen_items:
-                    new_items.append(item)
-                    # Mark as seen with URL tracking
-                    self.config_manager.add_seen_item(chat_id, str(item.id), url)
-            
-            logger.info(f"Found {len(new_items)} new items for URL: {url}")
-            return new_items
-            
-        except Exception as e:
-            logger.error(f"Error getting new items for URL {url}: {e}")
-            return []
+        items = self.search_items(url, max_items)
+        
+        if not self.config_manager:
+            logger.warning("No config manager provided, returning all items as new")
+            return items
+        
+        # Get seen items for this chat
+        seen_items = set(self.config_manager.get_seen_items(chat_id))
+        
+        # Filter items by ID to avoid duplicates
+        new_items = []
+        for item in items:
+            if str(item.id) not in seen_items:
+                new_items.append(item)
+                # Mark as seen with URL tracking
+                self.config_manager.add_seen_item(chat_id, str(item.id), url)
+        
+        logger.info(f"Found {len(new_items)} new items for URL: {url}")
+        return new_items
     
     def format_item_message(self, item: Any, search_url: str = "") -> str:
         """Format an item for Telegram message."""
