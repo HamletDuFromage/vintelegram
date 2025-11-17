@@ -98,6 +98,7 @@ vintelegram/
 ├── db_config_manager.py   # Database-backed configuration management
 
 ├── vinted_client.py       # Vinted API client
+├── lbc_client.py          # LeBonCoin API client
 
 ├── vinted_bot.db          # SQLite database (auto-created)
 ├── requirements.txt       # Python dependencies
@@ -173,7 +174,7 @@ The bot logs all activities. Check the console output for:
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the GNU APL License - see the LICENSE file for details.
 
 ## Disclaimer
 

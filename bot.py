@@ -5,6 +5,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 from db_config_manager import DBConfigManager
 from vinted_client import VintedClient
+from lbc_client import LeBonCoinClient
 import os
 from dotenv import load_dotenv
 
@@ -29,6 +30,7 @@ class VintedBot:
     def __init__(self):
         self.config_manager = DBConfigManager()
         self.vinted_client = VintedClient(self.config_manager)
+        self.leboncoin_client = LeBonCoinClient(self.config_manager)
         self.bot_token = self.config_manager.get_bot_token()
         
         if not self.bot_token:
@@ -77,7 +79,7 @@ class VintedBot:
 I can help you monitor Vinted search results and notify you about new items.
 
 📋 Available commands:
-• /add <url> - Add a Vinted search URL to monitor
+• /add <url> - Add a Vinted or LeBonCoin search URL to monitor
 • /list - Show your monitored URLs
 • /remove <url> - Remove a URL from monitoring
 • /search <url> - Search items from a URL immediately
@@ -136,8 +138,8 @@ To get started, send me a Vinted search URL or use /add <url>
         
         url = context.args[0]
         
-        if not self.vinted_client.validate_url(url):
-            await update.message.reply_text("❌ Invalid Vinted URL. Please provide a valid Vinted search URL.")  # type: ignore
+        if not self.vinted_client.validate_url(url) and not self.leboncoin_client.validate_url(url):
+            await update.message.reply_text("❌ Invalid Vinted or LeBonCoin URL. Please provide a valid Vinted search URL.")  # type: ignore
             return
         
         if self.config_manager.add_search_url(chat_id, url):
@@ -192,29 +194,35 @@ To get started, send me a Vinted search URL or use /add <url>
         
         url = context.args[0]
         
-        if not self.vinted_client.validate_url(url):
-            await update.message.reply_text("❌ Invalid Vinted URL. Please provide a valid Vinted search URL.")  # type: ignore
+        if self.vinted_client.validate_url(url):
+            client = self.vinted_client
+        elif self.leboncoin_client.validate_url(url):
+            client = self.leboncoin_client
+        else:
+            await update.message.reply_text("❌ Invalid Vinted or LeBonCoin URL. Please provide a valid search URL.")  # type: ignore
             return
-        
+
         await update.message.reply_text("🔍 Searching for items...")  # type: ignore
         
         try:
-            items = self.vinted_client.search_items(url, max_items=5)
+            items = client.search_items(url, max_items=5)
             
             if not items:
                 await update.message.reply_text("❌ No items found for this search.")  # type: ignore
                 return
             
             for item in items:
-                message = self.vinted_client.format_item_message(item, url)
+                message = client.format_item_message(item, url)
                 await update.message.reply_text(message, parse_mode='Markdown')  # type: ignore
                 
         except Exception as e:
-            logger.error(f"Error searching items: {e}")
-            await update.message.reply_text("❌ Error occurred while searching. Please try again later.")  # type: ignore
-    
+            message = f"Error checking new items for chat {chat_id}, URL {url}: {e}"
+            await context.bot.send_message(
+                        chat_id=chat_id,
+                        text=f"❌ {message}",
+                    )
+            logger.error(message)
 
-    
     async def status_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /status command."""
         chat_id = update.effective_chat.id  # type: ignore
@@ -238,7 +246,7 @@ To get started, send me a Vinted search URL or use /add <url>
 ⏰ Check Interval: {bot_settings.get('check_interval', 300)} seconds
 📦 Max Items per Check: {bot_settings.get('max_items_per_check', 10)}
 
-✅ Bot is running and monitoring your URLs!
+✅ Bot status: {chat_config.get('paused', False) and "Paused" or "Active"}
         """
         
         await update.message.reply_text(status_message)  # type: ignore
@@ -280,18 +288,17 @@ To get started, send me a Vinted search URL or use /add <url>
         
         # Check if it's a URL
         if text and text.startswith(('http://', 'https://')):  # type: ignore
-            if self.vinted_client.validate_url(text):
-                # Ask what to do with the URL
+            if self.vinted_client.validate_url(text) or self.leboncoin_client.validate_url(text):
+
                 keyboard = [
                     [
-                        InlineKeyboardButton("➕ Add to monitoring", callback_data=f"add_{text}"),
-                        InlineKeyboardButton("🔍 Search now", callback_data=f"search_{text}")
+                        InlineKeyboardButton("➕ Add to monitoring", callback_data=f"add_{text}")
                     ]
                 ]
                 reply_markup = InlineKeyboardMarkup(keyboard)
                 
                 await update.message.reply_text(  # type: ignore
-                    f"🔗 I found a Vinted URL!\n\n{text}\n\nWhat would you like to do?",
+                    f"🔗 I found a Vinted or LeBonCoin URL!\n\n{text}\n\nWhat would you like to do?",
                     reply_markup=reply_markup
                 )
             else:
@@ -317,29 +324,7 @@ To get started, send me a Vinted search URL or use /add <url>
                 await query.edit_message_text(f"✅ URL added to monitoring!\n\n🔗 {url}")  # type: ignore
             else:
                 await query.edit_message_text("ℹ️ This URL is already in your monitoring list.")  # type: ignore
-        
-        elif data and data.startswith("search_"):  # type: ignore
-            url = data[7:]  # Remove "search_" prefix
-            await query.edit_message_text("🔍 Searching for items...")  # type: ignore
-            
-            try:
-                items = self.vinted_client.search_items(url, max_items=5)
-                
-                if not items:
-                    await query.edit_message_text("❌ No items found for this search.")  # type: ignore
-                    return
-                
-                # Send items as separate messages
-                for item in items:
-                    message = self.vinted_client.format_item_message(item, url)
-                    await context.bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown')
-                
-                await query.edit_message_text(f"✅ Found {len(items)} items! Check the messages above.")  # type: ignore
-                
-            except Exception as e:
-                logger.error(f"Error searching items: {e}")
-                await query.edit_message_text("❌ Error occurred while searching. Please try again later.")  # type: ignore
-    
+
     async def check_new_items_job(self, context: ContextTypes.DEFAULT_TYPE):
         """Job to check for new items."""
         try:
@@ -357,7 +342,14 @@ To get started, send me a Vinted search URL or use /add <url>
                 
                 for url in search_urls:
                     try:
-                        new_items = self.vinted_client.get_new_items(
+                        if self.vinted_client.validate_url(url):
+                            client = self.vinted_client
+                        elif self.leboncoin_client.validate_url(url):
+                            client = self.leboncoin_client
+                        else:
+                            continue
+
+                        new_items = client.get_new_items(
                             url, 
                             chat_id,
                             max_items=bot_settings.get('max_items_per_check', 10)
@@ -366,7 +358,7 @@ To get started, send me a Vinted search URL or use /add <url>
                         if new_items:
                             # Send notifications for new items
                             for item in new_items:
-                                message = self.vinted_client.format_item_message(item, url)
+                                message = client.format_item_message(item, url)
                                 await context.bot.send_message(
                                     chat_id=chat_id,
                                     text=f"🆕 New item found!\n\n{message}",
@@ -379,7 +371,12 @@ To get started, send me a Vinted search URL or use /add <url>
                             logger.info(f"Sent {len(new_items)} new item notifications to chat {chat_id}")
                     
                     except Exception as e:
-                        logger.error(f"Error checking new items for chat {chat_id}, URL {url}: {e}")
+                        message = f"Error checking new items for chat {chat_id}, URL {url}: {e}"
+                        await context.bot.send_message(
+                                    chat_id=chat_id,
+                                    text=f"❌ {message}",
+                                )
+                        logger.error(message)
             
         except Exception as e:
             logger.error(f"Error in background check job: {e}")
