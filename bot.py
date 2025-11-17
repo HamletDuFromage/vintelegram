@@ -63,7 +63,8 @@ class VintedBot:
             self.application.job_queue.run_repeating(self.check_new_items_job, interval=300, first=10)
             
             # Add job to cleanup old seen items daily
-            self.application.job_queue.run_daily(self.cleanup_job, time=datetime.time(hour=3, minute=0))
+            #self.application.job_queue.run_daily(self.cleanup_job, time=datetime.time(hour=3, minute=0))
+
     
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /start command."""
