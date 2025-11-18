@@ -217,12 +217,7 @@ To get started, send me a Vinted search URL or use /add <url>
                 await update.message.reply_text(message, parse_mode='Markdown')  # type: ignore
                 
         except Exception as e:
-            message = f"Error checking new items for chat {chat_id}, URL {url}: {e}"
-            await context.bot.send_message(
-                        chat_id=chat_id,
-                        text=f"❌ {message}",
-                    )
-            logger.error(message)
+            await self.handle_error(context, chat_id, url, e)
 
     async def status_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /status command."""
@@ -326,6 +321,22 @@ To get started, send me a Vinted search URL or use /add <url>
             else:
                 await query.edit_message_text("ℹ️ This URL is already in your monitoring list.")  # type: ignore
 
+    async def handle_error(self, context: ContextTypes.DEFAULT_TYPE, chat_id: int, url : str, e: Exception):
+        if self.vinted_client.validate_url(url):
+            if "403 Client Error: Forbidden" in str(e):
+                pass
+            elif "401 Client Error: Unauthorized" in str(e):
+                self.vinted_client.refresh_session()
+        elif self.leboncoin_client.validate_url(url):
+            pass
+        
+        message = f"Error {type(e)} for {url}: {e}"
+        await context.bot.send_message(
+                    chat_id=chat_id,
+                    text=f"❌ {message}",
+                )
+        logger.error(message)
+
     async def check_new_items_job(self, context: ContextTypes.DEFAULT_TYPE):
         """Job to check for new items."""
         try:
@@ -372,12 +383,7 @@ To get started, send me a Vinted search URL or use /add <url>
                             logger.info(f"Sent {len(new_items)} new item notifications to chat {chat_id}")
                     
                     except Exception as e:
-                        message = f"Error checking new items for chat {chat_id}, URL {url}: {e}"
-                        await context.bot.send_message(
-                                    chat_id=chat_id,
-                                    text=f"❌ {message}",
-                                )
-                        logger.error(message)
+                        await self.handle_error(context, chat_id, url, e)
             
         except Exception as e:
             logger.error(f"Error in background check job: {e}")

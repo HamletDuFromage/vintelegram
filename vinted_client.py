@@ -11,6 +11,9 @@ class VintedClient:
         self.vinted = Vinted()
         self.last_check_times = {}  # Track last check time for each URL
         self.config_manager = config_manager
+
+    def refresh_session(self):
+        self.vinted = Vinted()
     
     def search_items(self, url: str, max_items: int = 10) -> List[Any]:
         """Search for items using a Vinted URL."""
