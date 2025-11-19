@@ -1,12 +1,14 @@
 import logging
 import asyncio
-import datetime
+import requests
+import ua_generator
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 from db_config_manager import DBConfigManager
 from vinted_client import VintedClient
 from lbc_client import LeBonCoinClient
-import os
+from pyVinted.requester import requester
+
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -326,7 +328,9 @@ To get started, send me a Vinted search URL or use /add <url>
             if "403 Client Error: Forbidden" in str(e):
                 pass
             elif "401 Client Error: Unauthorized" in str(e):
-                self.vinted_client.refresh_session()
+                requester.session = requests.Session()
+                requester.HEADER["User-Agent"] = ua_generator.generate(device='desktop', platform='windows').text
+                requester.session.headers.update(requester.HEADER)
         elif self.leboncoin_client.validate_url(url):
             pass
         
@@ -334,6 +338,7 @@ To get started, send me a Vinted search URL or use /add <url>
         await context.bot.send_message(
                     chat_id=chat_id,
                     text=f"❌ {message}",
+                    disable_notification=True
                 )
         logger.error(message)
 

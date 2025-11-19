@@ -2,3 +2,4 @@ python-telegram-bot[job-queue]
 pyVinted
 python-dotenv
 lbc
+ua_generator
