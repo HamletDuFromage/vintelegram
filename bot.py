@@ -34,26 +34,35 @@ class VintedBot:
         self.vinted_client = VintedClient(self.config_manager)
         self.leboncoin_client = LeBonCoinClient(self.config_manager)
         self.bot_token = self.config_manager.get_bot_token()
+
+        self.commands = {
+            "start": self.start_command,
+            "help": self.help_command,
+            "add": self.add_url_command,
+            "list": self.list_urls_command,
+            "remove": self.remove_url_command,
+            "search": self.search_command,
+            "status": self.status_command,
+            "pause": self.pause_command,
+            "resume": self.resume_command,
+        }
         
         if not self.bot_token:
             raise ValueError("Bot token not found! Please set TELEGRAM_BOT_TOKEN environment variable")
         
-        self.application = Application.builder().token(self.bot_token).build()
+        self.application = Application.builder().token(self.bot_token).post_init(self.post_init).build()
         self._setup_handlers()
-    
+
+    async def post_init(self, app: Application):
+        hints = [("/" + k, k) for k in self.commands.keys()]
+        await self.application.bot.set_my_commands(hints)
+
     def _setup_handlers(self):
         """Setup all bot handlers."""
-        # Command handlers
-        self.application.add_handler(CommandHandler("start", self.start_command))
-        self.application.add_handler(CommandHandler("help", self.help_command))
-        self.application.add_handler(CommandHandler("add", self.add_url_command))
-        self.application.add_handler(CommandHandler("list", self.list_urls_command))
-        self.application.add_handler(CommandHandler("remove", self.remove_url_command))
-        self.application.add_handler(CommandHandler("search", self.search_command))
-        self.application.add_handler(CommandHandler("status", self.status_command))
-        self.application.add_handler(CommandHandler("pause", self.pause_command))
-        self.application.add_handler(CommandHandler("resume", self.resume_command))
-        
+
+        for key, value in self.commands.items():
+            self.application.add_handler(CommandHandler(key, value))
+
         # Message handler for URLs
         self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_message))
         
@@ -67,7 +76,7 @@ class VintedBot:
             # Add job to cleanup old seen items daily
             #self.application.job_queue.run_daily(self.cleanup_job, time=datetime.time(hour=3, minute=0))
 
-    
+
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /start command."""
         chat_id = update.effective_chat.id  # type: ignore
