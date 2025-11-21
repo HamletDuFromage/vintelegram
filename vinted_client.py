@@ -2,22 +2,31 @@ from pyVinted import Vinted
 from typing import List, Dict, Any, Optional
 import logging
 from urllib.parse import urlparse, parse_qs
-import time
+from pyVinted.requester import requester
+import requests
+import ua_generator
 
 logger = logging.getLogger(__name__)
 
 class VintedClient:
-    def __init__(self, config_manager=None):
+    def __init__(self, config_manager=None, randomize_ua: bool = False):
         self.vinted = Vinted()
         self.last_check_times = {}  # Track last check time for each URL
         self.config_manager = config_manager
+        self.randomize_ua = randomize_ua
 
     def refresh_session(self):
         self.vinted = Vinted()
-    
+
+    def randomize_user_agent(self):
+        requester.session = requests.Session()
+        requester.HEADER["User-Agent"] = ua_generator.generate(device='desktop', platform='windows').text
+        requester.session.headers.update(requester.HEADER)
+
     def search_items(self, url: str, max_items: int = 10) -> List[Any]:
         """Search for items using a Vinted URL."""
-        # Use pyVinted items.search method directly with URL
+        if self.randomize_ua:
+            self.randomize_user_agent()
         items = self.vinted.items.search(url, max_items, 1)
         
         logger.info(f"Found {len(items)} items for URL: {url}")

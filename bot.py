@@ -328,9 +328,7 @@ To get started, send me a Vinted search URL or use /add <url>
             if "403 Client Error: Forbidden" in str(e):
                 pass
             elif "401 Client Error: Unauthorized" in str(e):
-                requester.session = requests.Session()
-                requester.HEADER["User-Agent"] = ua_generator.generate(device='desktop', platform='windows').text
-                requester.session.headers.update(requester.HEADER)
+                self.vinted_client.randomize_user_agent()
         elif self.leboncoin_client.validate_url(url):
             pass
         

@@ -11,6 +11,12 @@ class LeBonCoinClient:
         self.lbc = lbc.Client()
         self.last_check_times = {}  # Track last check time for each URL
         self.config_manager = config_manager
+
+    def refresh_session(self):
+        pass
+
+    def randomize_user_agent(self):
+        pass
     
     def search_items(self, url: str, max_items: int = 10) -> List[Any]:
         """Search for items using a LeBonCoin URL."""
