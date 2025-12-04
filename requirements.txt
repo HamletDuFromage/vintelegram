@@ -1,5 +1,5 @@
 python-telegram-bot[job-queue]
-pyVinted
+git+https://github.com/herissondev/vinted-api-wrapper.git#egg=pyVinted
 python-dotenv
 lbc
 ua_generator
