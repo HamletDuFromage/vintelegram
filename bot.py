@@ -338,6 +338,8 @@ To get started, send me a Vinted search URL or use /add <url>
                 pass
             elif "401 Client Error: Unauthorized" in str(e):
                 self.vinted_client.randomize_user_agent()
+                if self.vinted_client.failed_attempts > 0:
+                    return True
         elif self.leboncoin_client.validate_url(url):
             pass
         
@@ -348,6 +350,7 @@ To get started, send me a Vinted search URL or use /add <url>
                     disable_notification=True
                 )
         logger.error(message)
+        return False
 
     async def check_new_items_job(self, context: ContextTypes.DEFAULT_TYPE):
         """Job to check for new items."""
@@ -364,7 +367,8 @@ To get started, send me a Vinted search URL or use /add <url>
                     chat_config.get('paused', False)):
                     continue
                 
-                for url in search_urls:
+                while search_urls:
+                    url = search_urls.pop(0)
                     try:
                         if self.vinted_client.validate_url(url):
                             client = self.vinted_client
@@ -386,7 +390,7 @@ To get started, send me a Vinted search URL or use /add <url>
                                 await context.bot.send_message(
                                     chat_id=chat_id,
                                     text=f"🆕 New item found!\n\n{message}",
-                                    parse_mode='Markdown'
+                                    parse_mode='MarkdownV2'
                                 )
                                 
                                 # Small delay to avoid rate limiting
@@ -395,7 +399,8 @@ To get started, send me a Vinted search URL or use /add <url>
                             logger.info(f"Sent {len(new_items)} new item notifications to chat {chat_id}")
                     
                     except Exception as e:
-                        await self.handle_error(context, chat_id, url, e)
+                        if await self.handle_error(context, chat_id, url, e):
+                            search_urls.append(url)
             
         except Exception as e:
             logger.error(f"Error in background check job: {e}")

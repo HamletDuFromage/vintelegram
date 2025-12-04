@@ -12,6 +12,7 @@ class VintedClient:
     def __init__(self, config_manager=None, randomize_ua: bool = False):
         self.vinted = Vinted()
         self.last_check_times = {}  # Track last check time for each URL
+        self.failed_attempts = 0
         self.config_manager = config_manager
         self.randomize_ua = randomize_ua
 
@@ -25,11 +26,13 @@ class VintedClient:
 
     def search_items(self, url: str, max_items: int = 10) -> List[Any]:
         """Search for items using a Vinted URL."""
+        self.failed_attempts += 1
         if self.randomize_ua:
             self.randomize_user_agent()
         items = self.vinted.items.search(url, max_items, 1)
-        
+
         logger.info(f"Found {len(items)} items for URL: {url}")
+        self.failed_attempts = 0
         return items
     
     def get_new_items(self, url: str, chat_id: int, max_items: int = 10) -> List[Any]:

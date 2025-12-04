@@ -10,6 +10,7 @@ class LeBonCoinClient:
     def __init__(self, config_manager=None):
         self.lbc = lbc.Client()
         self.last_check_times = {}  # Track last check time for each URL
+        self.failed_attempts = 0
         self.config_manager = config_manager
 
     def refresh_session(self):
@@ -20,6 +21,7 @@ class LeBonCoinClient:
     
     def search_items(self, url: str, max_items: int = 10) -> List[Any]:
         """Search for items using a LeBonCoin URL."""
+        self.failed_attempts += 1
         url = unquote(url)
         items = self.lbc.search(url, limit=max_items, page=1)
         
@@ -31,6 +33,7 @@ class LeBonCoinClient:
                 for attr in item.attributes
             )
         ]
+        self.failed_attempts = 0
         return res
     
     def get_new_items(self, url: str, chat_id: int, max_items: int = 10) -> List[Any]:
