@@ -390,7 +390,7 @@ To get started, send me a Vinted search URL or use /add <url>
                                 await context.bot.send_message(
                                     chat_id=chat_id,
                                     text=f"🆕 New item found!\n\n{message}",
-                                    parse_mode='MarkdownV2'
+                                    parse_mode='Markdown'
                                 )
                                 
                                 # Small delay to avoid rate limiting
