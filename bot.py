@@ -333,12 +333,13 @@ To get started, send me a Vinted search URL or use /add <url>
                 await query.edit_message_text("ℹ️ This URL is already in your monitoring list.")  # type: ignore
 
     async def handle_error(self, context: ContextTypes.DEFAULT_TYPE, chat_id: int, url : str, e: Exception):
+        """Handle errors during item fetching. Return True if problem is solved."""
         if self.vinted_client.validate_url(url):
             if "403 Client Error: Forbidden" in str(e):
                 pass
             elif "401 Client Error: Unauthorized" in str(e):
                 self.vinted_client.randomize_user_agent()
-                if self.vinted_client.failed_attempts > 0:
+                if self.vinted_client.failed_attempts <= 1:
                     return True
         elif self.leboncoin_client.validate_url(url):
             pass
