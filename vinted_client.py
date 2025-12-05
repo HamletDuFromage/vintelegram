@@ -1,6 +1,7 @@
 from pyVinted import Vinted
 from typing import List, Dict, Any, Optional
 import logging
+from datetime import datetime, timezone, timedelta
 from urllib.parse import urlparse, parse_qs
 from pyVinted.requester import requester
 import requests
@@ -47,10 +48,12 @@ class VintedClient:
         seen_items = set(self.config_manager.get_seen_items(chat_id))
         
         # Filter items by ID to avoid duplicates
+        now = datetime.now(timezone.utc)
         new_items = []
         for item in items:
             if str(item.id) not in seen_items:
-                new_items.append(item)
+                if now - item.created_at_ts < timedelta(days=7):
+                    new_items.append(item)
                 # Mark as seen with URL tracking
                 self.config_manager.add_seen_item(chat_id, str(item.id), url)
         
