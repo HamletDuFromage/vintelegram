@@ -46,6 +46,7 @@ def load_proxies(path):
                 "http":  f"http://{line}:89",
                 "https": f"http://{line}:90",
             })
+    print(f"[INFO] Loaded {len(proxies)} proxies from '{path}'")
     return proxies
 
 class VintedBot:
