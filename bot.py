@@ -362,7 +362,7 @@ To get started, send me a Vinted search URL or use /add <url>
                 try: 
                     proxy = next(self.proxy_pool)
                     requester.session.proxies = proxy
-                    ip = requests.get("https://api.ipify.org").text
+                    ip = requester.session.get("https://api.ipify.org").text
                     logger.info(f"Switched to new proxy: {proxy} - ip: {ip}")
                     if self.vinted_client.failed_attempts <= 1:
                         return True
