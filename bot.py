@@ -44,7 +44,7 @@ def load_proxies(path):
                 continue
             proxies.append({
                 "http":  f"http://{line}:89",
-                "https": f"http://{line}:90",
+                "https": f"http://{line}:89",
             })
     print(f"[INFO] Loaded {len(proxies)} proxies from '{path}'")
     return proxies
