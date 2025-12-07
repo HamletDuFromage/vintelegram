@@ -62,3 +62,5 @@ vinted_bot.db
 # Temporary files
 *.tmp
 *.temp 
+
+proxies.txt

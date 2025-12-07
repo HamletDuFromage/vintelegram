@@ -1,6 +1,7 @@
 import logging
 import asyncio
 import requests
+import os
 import ua_generator
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
@@ -8,6 +9,7 @@ from db_config_manager import DBConfigManager
 from vinted_client import VintedClient
 from lbc_client import LeBonCoinClient
 from pyVinted.requester import requester
+from itertools import cycle
 
 from dotenv import load_dotenv
 
@@ -28,9 +30,29 @@ logging.getLogger('apscheduler').setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
+PROXY_FILE = "/app/data/proxies.txt"
+
+def load_proxies(path):
+    proxies = []
+    if not os.path.exists(path):
+        print(f"[WARN] Proxy file '{path}' not found. Continuing without proxies.")
+        return proxies
+    with open(path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            proxies.append({
+                "http":  f"http://{line}:89",
+                "https": f"http://{line}:90",
+            })
+    return proxies
+
 class VintedBot:
     def __init__(self):
         self.config_manager = DBConfigManager()
+        self.proxies = load_proxies(PROXY_FILE)
+        self.proxy_pool = cycle(self.proxies) if self.proxies else None
         self.vinted_client = VintedClient(self.config_manager)
         self.leboncoin_client = LeBonCoinClient(self.config_manager)
         self.bot_token = self.config_manager.get_bot_token()
@@ -336,7 +358,15 @@ To get started, send me a Vinted search URL or use /add <url>
         """Handle errors during item fetching. Return True if problem is solved."""
         if self.vinted_client.validate_url(url):
             if "403 Client Error: Forbidden" in str(e):
-                pass
+                try: 
+                    proxy = next(self.proxy_pool)
+                    requester.session.proxies = proxy
+                    ip = requests.get("https://api.ipify.org").text
+                    logger.info(f"Switched to new proxy: {proxy} - ip: {ip}")
+                    if self.vinted_client.failed_attempts <= 1:
+                        return True
+                except:
+                    pass
             elif "401 Client Error: Unauthorized" in str(e):
                 self.vinted_client.randomize_user_agent()
                 if self.vinted_client.failed_attempts <= 1:
