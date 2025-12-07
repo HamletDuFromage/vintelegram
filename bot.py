@@ -1,6 +1,6 @@
 import logging
 import asyncio
-import requests
+import random
 import os
 import ua_generator
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -44,16 +44,17 @@ def load_proxies(path):
                 continue
             proxies.append({
                 "http":  f"http://{line}:89",
-                "https": f"http://{line}:89",
+                "https": f"https://{line}:90",
             })
     print(f"[INFO] Loaded {len(proxies)} proxies from '{path}'")
+    random.shuffle(proxies)
     return proxies
 
 class VintedBot:
     def __init__(self):
         self.config_manager = DBConfigManager()
         self.proxies = load_proxies(PROXY_FILE)
-        self.proxy_pool = cycle(self.proxies) if self.proxies else None
+        self.proxy_pool = cycle(self.proxies)
         self.vinted_client = VintedClient(self.config_manager)
         self.leboncoin_client = LeBonCoinClient(self.config_manager)
         self.bot_token = self.config_manager.get_bot_token()
