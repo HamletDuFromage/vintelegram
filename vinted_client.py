@@ -6,10 +6,49 @@ from urllib.parse import urlparse, parse_qs
 from pyVinted.requester import requester
 import requests
 import ua_generator
+from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
 class VintedClient:
+    @dataclass
+    class Item:
+        title: str
+        price: Any
+        currency: str
+        url: str
+        photo_url: str
+        brand: str
+        id: str
+        search_url: str = ""
+
+        @classmethod
+        def from_raw(cls, item: Any, search_url: str = ""):
+            """Create an Item from a raw object."""
+            try:
+                return cls(
+                    title=item.title,
+                    price=item.price,
+                    currency=item.currency,
+                    url=item.url,
+                    photo_url=item.photo,
+                    brand=getattr(item, "brand_title", "Unknown brand"),
+                    id=item.id,
+                    search_url=search_url,
+                )
+            except Exception as e:
+                logger.error(f"Error creating Item: {e}")
+                return cls(
+                    title="",
+                    price=None,
+                    currency="",
+                    url="",
+                    photo_url="",
+                    brand="Unknown brand",
+                    id=item.id,
+                    search_url=search_url,
+            )
+
     def __init__(self, config_manager=None, randomize_ua: bool = False):
         self.vinted = Vinted()
         self.last_check_times = {}  # Track last check time for each URL
@@ -30,7 +69,8 @@ class VintedClient:
         self.failed_attempts += 1
         if self.randomize_ua:
             self.randomize_user_agent()
-        items = self.vinted.items.search(url, max_items, 1)
+        res = self.vinted.items.search(url, max_items, 1)
+        items = [VintedClient.Item.from_raw(item, search_url=url) for item in res]
 
         logger.info(f"Found {len(items)} items for URL: {url}")
         self.failed_attempts = 0
@@ -60,35 +100,40 @@ class VintedClient:
         logger.info(f"Found {len(new_items)} new items for URL: {url}")
         return new_items
     
-    def format_item_message(self, item: Any, search_url: str = "") -> str:
-        """Format an item for Telegram message."""
+    def format_item_dict(self, item: Any) -> Dict[str, Any]:
+        """Format an item into a dictionary."""
         try:
-            title = item.title
-            price = item.price
-            currency = item.currency
-            url = item.url
-            photo_url = item.photo
-            brand = getattr(item, 'brand_title', 'Unknown brand')
-            
-            message = f"🛍️ *{title}*\n"
-            message += f"🏷️ Brand: {brand}\n"
-            message += f"💰 Price: {price} {currency}\n"
-            
-            if url:
-                message += f"🔗 [View on Vinted]({url})\n"
-            
-            if photo_url:
-                message += f"📸 [Photo]({photo_url})\n"
-            
-            if search_url:
-                message += f"🔍 [Search URL]({search_url})\n"
-            
-            return message
+            item_dict = {
+                "title": item.title,
+                "price": item.price,
+                "currency": item.currency,
+                "url": item.url,
+                "photo_url": item.photo,
+                "brand": getattr(item, 'brand_title', 'Unknown brand'),
+                "search_url": item.search_url,
+            }
+            return item_dict
             
         except Exception as e:
-            logger.error(f"Error formatting item message: {e}")
-            return f"Error formatting item: {str(item)[:100]}..."
-    
+            logger.error(f"Error formatting item dict: {e}")
+            return {"error": f"Error formatting item"}
+
+    def format_item_message(self, item: "VintedClient.Item") -> str:
+        message = f"🛍️ *{item.title}*\n"
+        message += f"🏷️ Brand: {item.brand}\n"
+        message += f"💰 Price: {item.price} {item.currency}\n"
+
+        if item.url:
+            message += f"🔗 [View on Vinted]({item.url})\n"
+
+        if item.photo_url:
+            message += f"📸 [Photo]({item.photo_url})\n"
+
+        if item.search_url:
+            message += f"🔍 [Search URL]({item.search_url})\n"
+
+        return message
+
     def validate_url(self, url: str) -> bool:
         """Validate if a URL is a valid Vinted search URL."""
         try:

@@ -248,7 +248,7 @@ To get started, send me a Vinted search URL or use /add <url>
                 return
             
             for item in items:
-                message = client.format_item_message(item, url)
+                message = client.format_item_message(item)
                 await update.message.reply_text(message, parse_mode='Markdown')  # type: ignore
                 
         except Exception as e:
@@ -419,13 +419,21 @@ To get started, send me a Vinted search URL or use /add <url>
                         if new_items:
                             # Send notifications for new items
                             for item in new_items:
-                                message = client.format_item_message(item, url)
-                                await context.bot.send_message(
-                                    chat_id=chat_id,
-                                    text=f"🆕 New item found!\n\n{message}",
-                                    parse_mode='Markdown'
-                                )
-                                
+                                message = client.format_item_message(item)
+                                try:
+                                    await context.bot.send_photo(
+                                        chat_id=chat_id,
+                                        photo=item.photo_url,
+                                        caption=f"🆕 New item found!\n\n{message}",
+                                        parse_mode='Markdown'
+                                    )
+                                except Exception as e:
+                                    logger.error(f"Error sending photo for item {item.id}: {e}")
+                                    await context.bot.send_message(
+                                        chat_id=chat_id,
+                                        text=f"🆕 New item found!\n\n{message}",
+                                        parse_mode='Markdown'
+                                    )
                                 # Small delay to avoid rate limiting
                                 await asyncio.sleep(1)
                             
