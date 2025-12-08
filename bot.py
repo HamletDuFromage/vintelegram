@@ -367,8 +367,8 @@ To get started, send me a Vinted search URL or use /add <url>
                     logger.info(f"Switched to new proxy: {proxy} - ip: {ip}")
                     if self.vinted_client.failed_attempts <= 1:
                         return True
-                except:
-                    pass
+                except Exception as e:
+                    logging.error(f"Error switching proxy: {e}")
             elif "401 Client Error: Unauthorized" in str(e):
                 self.vinted_client.randomize_user_agent()
                 if self.vinted_client.failed_attempts <= 1:
