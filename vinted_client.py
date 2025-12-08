@@ -19,6 +19,7 @@ class VintedClient:
         url: str
         photo_url: str
         brand: str
+        created_at: datetime
         id: str
         search_url: str = ""
 
@@ -33,6 +34,7 @@ class VintedClient:
                     url=item.url,
                     photo_url=item.photo,
                     brand=getattr(item, "brand_title", "Unknown brand"),
+                    created_at=item.created_at_ts,
                     id=item.id,
                     search_url=search_url,
                 )
@@ -45,6 +47,7 @@ class VintedClient:
                     url="",
                     photo_url="",
                     brand="Unknown brand",
+                    created_at=datetime.min,
                     id=item.id,
                     search_url=search_url,
             )
@@ -92,7 +95,7 @@ class VintedClient:
         new_items = []
         for item in items:
             if str(item.id) not in seen_items:
-                if now - item.created_at_ts < timedelta(days=7):
+                if now - item.created_at < timedelta(days=7):
                     new_items.append(item)
                 # Mark as seen with URL tracking
                 self.config_manager.add_seen_item(chat_id, str(item.id), url)

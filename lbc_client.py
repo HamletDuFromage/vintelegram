@@ -2,7 +2,7 @@ import lbc
 from typing import List, Dict, Any, Optional
 import logging
 from urllib.parse import urlparse, unquote
-import time
+from datetime import datetime, timezone
 from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
@@ -16,6 +16,7 @@ class LeBonCoinClient:
         url: str
         photo_url: str
         brand: str
+        created_at: datetime
         id: str
         search_url: str = ""
 
@@ -29,6 +30,7 @@ class LeBonCoinClient:
                 url = item.url
                 images = getattr(item, "images", [])
                 brand = getattr(item, "brand", "Unknown brand")
+                created_at = datetime.strptime(item.first_publication_date, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
                 photo_url = images[0] if images else ""
 
                 return cls(
@@ -38,6 +40,7 @@ class LeBonCoinClient:
                     url=url,
                     photo_url=photo_url,
                     brand=brand,
+                    created_at=created_at,
                     id=item.id,
                     search_url=search_url,
                 )
@@ -51,6 +54,7 @@ class LeBonCoinClient:
                     url="",
                     photo_url="",
                     brand="Unknown brand",
+                    created_at=datetime.min,
                     id=item.id,
                     search_url=search_url,
                 )
