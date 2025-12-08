@@ -31,6 +31,7 @@ logging.getLogger('apscheduler').setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 PROXY_FILE = "/app/data/proxies.txt"
+PICTURE_NOT_FOUND = "AgACAgQAAxkDAAIGaWk2353DBhtNqJ1SB5pydMWn3viPAAKEC2sbCCy9UbvfKmXhtgbdAQADAgADeAADNgQ"
 
 def load_proxies(path):
     proxies = []
@@ -429,9 +430,10 @@ To get started, send me a Vinted search URL or use /add <url>
                                     )
                                 except Exception as e:
                                     logger.error(f"Error sending photo for item {item.id}: {e}")
-                                    await context.bot.send_message(
+                                    await context.bot.send_photo(
                                         chat_id=chat_id,
-                                        text=f"🆕 New item found!\n\n{message}",
+                                        photo=PICTURE_NOT_FOUND,
+                                        caption=f"🆕 New item found!\n\n{message}",
                                         parse_mode='Markdown'
                                     )
                                 # Small delay to avoid rate limiting
