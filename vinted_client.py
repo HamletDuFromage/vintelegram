@@ -67,6 +67,12 @@ class VintedClient:
         requester.HEADER["User-Agent"] = ua_generator.generate(device='desktop', platform='windows').text
         requester.session.headers.update(requester.HEADER)
 
+    def set_proxy(self, proxy: Dict[str, str]) -> str:
+        requester.session.proxies = proxy
+        ip = requester.session.get("https://api.ipify.org").text
+        logger.info(f"Switched to new proxy: {proxy} - ip: {ip}")
+        return ip
+
     def search_items(self, url: str, max_items: int = 10) -> List[Any]:
         """Search for items using a Vinted URL."""
         self.failed_attempts += 1

@@ -70,6 +70,20 @@ class LeBonCoinClient:
 
     def randomize_user_agent(self):
         pass
+
+    def set_proxy(self, proxy: Dict[str, str]) -> str:
+        proxy_url = proxy.get("https")
+        p = urlparse(proxy_url)
+        proxy_object = lbc.Proxy(
+            host=p.hostname,
+            port=p.port,
+            username=p.username,
+            password=p.password,
+        )
+        self.lbc = lbc.Client(proxy=proxy_object)
+        ip = self.lbc.session.get("https://api.ipify.org").text
+        logger.info(f"Switched to new proxy: {proxy} - ip: {ip}")
+        return ip
     
     def search_items(self, url: str, max_items: int = 10) -> List[Any]:
         """Search for items using a LeBonCoin URL."""

@@ -3,6 +3,7 @@ import asyncio
 import random
 import os
 import ua_generator
+from lbc import exceptions as lbc_exceptions
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 from db_config_manager import DBConfigManager
@@ -363,9 +364,7 @@ To get started, send me a Vinted search URL or use /add <url>
             if "403 Client Error: Forbidden" in str(e):
                 try: 
                     proxy = next(self.proxy_pool)
-                    requester.session.proxies = proxy
-                    ip = requester.session.get("https://api.ipify.org").text
-                    logger.info(f"Switched to new proxy: {proxy} - ip: {ip}")
+                    self.vinted_client.set_proxy(proxy)
                     if self.vinted_client.failed_attempts <= 1:
                         return True
                 except Exception as e:
@@ -374,9 +373,17 @@ To get started, send me a Vinted search URL or use /add <url>
                 self.vinted_client.randomize_user_agent()
                 if self.vinted_client.failed_attempts <= 1:
                     return True
+
         elif self.leboncoin_client.validate_url(url):
-            pass
-        
+            if type(e) == lbc_exceptions.DatadomeError:
+                try:
+                    proxy = next(self.proxy_pool)
+                    self.leboncoin_client.set_proxy(proxy)
+                    if self.leboncoin_client.failed_attempts <= 1:
+                        return True
+                except Exception as e:
+                    logging.error(f"Error switching proxy: {e}")
+
         message = f"Error {type(e)} for {url}: {e}"
         await context.bot.send_message(
                     chat_id=chat_id,
