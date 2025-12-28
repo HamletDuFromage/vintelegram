@@ -414,7 +414,6 @@ To get started, send me a Vinted search URL or use /add <url>
                         if self.vinted_client.validate_url(url):
                             client = self.vinted_client
                         elif self.leboncoin_client.validate_url(url):
-                            continue # https://github.com/etienne-hd/lbc/pull/7
                             client = self.leboncoin_client
                         else:
                             continue

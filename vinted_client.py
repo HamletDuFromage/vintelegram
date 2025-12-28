@@ -7,6 +7,7 @@ from pyVinted.requester import requester
 import requests
 import ua_generator
 from dataclasses import dataclass
+import argparse
 
 logger = logging.getLogger(__name__)
 
@@ -69,9 +70,9 @@ class VintedClient:
 
     def set_proxy(self, proxy: Dict[str, str]) -> str:
         requester.session.proxies = proxy
-        ip = requester.session.get("https://api.ipify.org", timeout=10).text
-        logger.info(f"Switched to new proxy: {proxy} - ip: {ip}")
-        return ip
+        #ip = requester.session.get("https://api.ipify.org", timeout=10).text
+        logger.info(f"Switched to new proxy: {proxy}")
+        #return ip
 
     def search_items(self, url: str, max_items: int = 10) -> List[Any]:
         """Search for items using a Vinted URL."""
@@ -149,4 +150,29 @@ class VintedClient:
             parsed = urlparse(url)
             return 'vinted' in parsed.netloc.lower()
         except Exception:
-            return False 
+            return False
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+
+    parser = argparse.ArgumentParser(description="Vinted Client CLI")
+    parser.add_argument("--proxy", type=str, help="Proxy URL (e.g., http://user:pass@host:port)")
+    args = parser.parse_args()
+
+    client = VintedClient()
+    
+    if args.proxy:
+        try:
+            client.set_proxy({"https": args.proxy})
+        except Exception as e:
+            print(f"Error setting proxy: {e}")
+
+    test_url = "https://www.vinted.fr/catalog?search_text=linux" 
+    if client.validate_url(test_url):
+        items = client.search_items(test_url, max_items=5)
+        print(f"Found {len(items)} items.")
+        for item in items:
+            print(item)
+            print(client.format_item_message(item))
+    else:
+        print("Invalid Vinted URL")

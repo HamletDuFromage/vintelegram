@@ -4,6 +4,7 @@ import logging
 from urllib.parse import urlparse, unquote
 from datetime import datetime, timezone
 from dataclasses import dataclass
+import argparse
 
 logger = logging.getLogger(__name__)
 
@@ -79,11 +80,12 @@ class LeBonCoinClient:
             port=p.port,
             username=p.username,
             password=p.password,
+            scheme="https",
         )
         self.lbc = lbc.Client(proxy=proxy_object)
-        ip = self.lbc.session.get("https://api.ipify.org", timeout=10).text
-        logger.info(f"Switched to new proxy: {proxy} - ip: {ip}")
-        return ip
+        #ip = self.lbc.session.get("https://api.ipify.org", timeout=10).text
+        logger.info(f"Switched to new proxy: {proxy}")
+        #return ip
     
     def search_items(self, url: str, max_items: int = 10) -> List[Any]:
         """Search for items using a LeBonCoin URL."""
@@ -155,8 +157,18 @@ class LeBonCoinClient:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
+    parser = argparse.ArgumentParser(description="LeBonCoin Client CLI")
+    parser.add_argument("--proxy", type=str, help="Proxy URL (e.g., http://user:pass@host:port)")
+    args = parser.parse_args()
+
     client = LeBonCoinClient()
-    test_url = "https://www.leboncoin.fr/recherche?text=La+Pavoni"  # replace with a valid LeBonCoin URL
+    
+    if args.proxy:
+        try:
+            client.set_proxy({"https": args.proxy})
+        except Exception as e:
+            print(f"Error setting proxy: {e}")
+    test_url = "https://www.leboncoin.fr/recherche?text=linux"
 
     if client.validate_url(test_url):
         items = client.search_items(test_url, max_items=5)
