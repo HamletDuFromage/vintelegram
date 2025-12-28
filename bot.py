@@ -3,6 +3,7 @@ import asyncio
 import random
 import os
 import ua_generator
+import requests
 from lbc import exceptions as lbc_exceptions
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
@@ -361,7 +362,7 @@ To get started, send me a Vinted search URL or use /add <url>
     async def handle_error(self, context: ContextTypes.DEFAULT_TYPE, chat_id: int, url : str, e: Exception):
         """Handle errors during item fetching. Return True if problem is solved."""
         if self.vinted_client.validate_url(url):
-            if "403 Client Error: Forbidden" in str(e):
+            if "403 Client Error: Forbidden" in str(e) or isinstance(e, requests.exceptions.ProxyError):
                 try: 
                     proxy = next(self.proxy_pool)
                     self.vinted_client.set_proxy(proxy)
