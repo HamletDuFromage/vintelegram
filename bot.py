@@ -375,7 +375,7 @@ To get started, send me a Vinted search URL or use /add <url>
                     return True
 
         elif self.leboncoin_client.validate_url(url):
-            if type(e) == lbc_exceptions.DatadomeError:
+            if isinstance(e, lbc_exceptions.DatadomeError):
                 try:
                     proxy = next(self.proxy_pool)
                     self.leboncoin_client.set_proxy(proxy)
