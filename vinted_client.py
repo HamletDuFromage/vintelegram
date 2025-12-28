@@ -68,7 +68,7 @@ class VintedClient:
         requester.HEADER["User-Agent"] = ua_generator.generate(device='desktop', platform='windows').text
         requester.session.headers.update(requester.HEADER)
 
-    def set_proxy(self, proxy: Dict[str, str]) -> str:
+    def set_proxy(self, proxy: Dict[str, str]) -> None:
         requester.session.proxies = proxy
         #ip = requester.session.get("https://api.ipify.org", timeout=10).text
         logger.info(f"Switched to new proxy: {proxy}")

@@ -72,7 +72,7 @@ class LeBonCoinClient:
     def randomize_user_agent(self):
         pass
 
-    def set_proxy(self, proxy: Dict[str, str]) -> str:
+    def set_proxy(self, proxy: Dict[str, str]) -> None:
         proxy_url = proxy.get("https")
         p = urlparse(proxy_url)
         proxy_object = lbc.Proxy(
