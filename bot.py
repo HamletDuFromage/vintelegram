@@ -367,8 +367,8 @@ To get started, send me a Vinted search URL or use /add <url>
                     self.vinted_client.set_proxy(proxy)
                     if self.vinted_client.failed_attempts <= 1:
                         return True
-                except Exception as e:
-                    logging.error(f"Error switching proxy: {e}")
+                except Exception as proxy_err:
+                    logging.error(f"Error switching proxy for Vinted: {proxy_err}")
             elif "401 Client Error: Unauthorized" in str(e):
                 self.vinted_client.randomize_user_agent()
                 if self.vinted_client.failed_attempts <= 1:
@@ -381,8 +381,8 @@ To get started, send me a Vinted search URL or use /add <url>
                     self.leboncoin_client.set_proxy(proxy)
                     if self.leboncoin_client.failed_attempts <= 1:
                         return True
-                except Exception as e:
-                    logging.error(f"Error switching proxy: {e}")
+                except Exception as proxy_err:
+                    logging.error(f"Error switching proxy for LeBonCoin: {proxy_err}")
 
         message = f"Error {type(e)} for {url}: {e}"
         await context.bot.send_message(

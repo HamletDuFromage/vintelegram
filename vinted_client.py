@@ -69,7 +69,7 @@ class VintedClient:
 
     def set_proxy(self, proxy: Dict[str, str]) -> str:
         requester.session.proxies = proxy
-        ip = requester.session.get("https://api.ipify.org").text
+        ip = requester.session.get("https://api.ipify.org", timeout=10).text
         logger.info(f"Switched to new proxy: {proxy} - ip: {ip}")
         return ip
 

@@ -81,7 +81,7 @@ class LeBonCoinClient:
             password=p.password,
         )
         self.lbc = lbc.Client(proxy=proxy_object)
-        ip = self.lbc.session.get("https://api.ipify.org").text
+        ip = self.lbc.session.get("https://api.ipify.org", timeout=10).text
         logger.info(f"Switched to new proxy: {proxy} - ip: {ip}")
         return ip
     
