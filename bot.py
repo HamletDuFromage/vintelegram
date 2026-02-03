@@ -244,7 +244,7 @@ To get started, send me a Vinted search URL or use /add <url>
         await update.message.reply_text("🔍 Searching for items...")  # type: ignore
         
         try:
-            items = client.search_items(url, max_items=5)
+            items = await asyncio.to_thread(client.search_items, url, max_items=5)
             
             if not items:
                 await update.message.reply_text("❌ No items found for this search.")  # type: ignore
@@ -419,7 +419,8 @@ To get started, send me a Vinted search URL or use /add <url>
                         else:
                             continue
 
-                        new_items = client.get_new_items(
+                        new_items = await asyncio.to_thread(
+                            client.get_new_items,
                             url, 
                             chat_id,
                             max_items=bot_settings.get('max_items_per_check', 10)
