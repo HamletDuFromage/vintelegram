@@ -5,7 +5,7 @@ import os
 import ua_generator
 import requests
 from lbc import exceptions as lbc_exceptions
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, error
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 from db_config_manager import DBConfigManager
 from vinted_client import VintedClient
@@ -431,22 +431,25 @@ To get started, send me a Vinted search URL or use /add <url>
                             for item in new_items:
                                 message = client.format_item_message(item)
                                 try:
-                                    res = await context.bot.send_photo(
-                                        chat_id=chat_id,
-                                        photo=item.photo_url,
-                                        caption=f"🆕 New item found!\n\n{message}",
-                                        parse_mode='Markdown'
-                                    )
-                                    logger.info(f"Telegram send result: {res}")
+                                    try:
+                                        res = await context.bot.send_photo(
+                                            chat_id=chat_id,
+                                            photo=item.photo_url,
+                                            caption=f"🆕 New item found!\n\n{message}",
+                                            parse_mode='Markdown'
+                                        )
+                                        logger.info(f"Telegram send result: {res}")
+                                    except error.TelegramError as e:
+                                        logger.error(f"Error sending photo for item {item.id}: {e}")
+                                        res = await context.bot.send_photo(
+                                            chat_id=chat_id,
+                                            photo=PICTURE_NOT_FOUND,
+                                            caption=f"🆕 New item found!\n\n{message}",
+                                            parse_mode='Markdown'
+                                        )
+                                        logger.info(f"Telegram fallback send result: {res}")
                                 except Exception as e:
-                                    logger.error(f"Error sending photo for item {item.id}: {e}")
-                                    res = await context.bot.send_photo(
-                                        chat_id=chat_id,
-                                        photo=PICTURE_NOT_FOUND,
-                                        caption=f"🆕 New item found!\n\n{message}",
-                                        parse_mode='Markdown'
-                                    )
-                                    logger.info(f"Telegram fallback send result: {res}")
+                                    logger.warning(f"Couldn't send item {item.id} to chat {chat_id}: {e}")
                                 # Small delay to avoid rate limiting
                                 await asyncio.sleep(1)
                     
