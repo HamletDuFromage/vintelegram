@@ -361,15 +361,14 @@ To get started, send me a Vinted search URL or use /add <url>
 
     async def handle_error(self, context: ContextTypes.DEFAULT_TYPE, chat_id: int, url : str, e: Exception):
         """Handle errors during item fetching. Return True if problem is solved."""
+        network_errors = (requests.exceptions.ProxyError, requests.exceptions.Timeout, requests.exceptions.ConnectionError)
+        
         if self.vinted_client.validate_url(url):
-            if "403 Client Error: Forbidden" in str(e) or isinstance(e, requests.exceptions.ProxyError):
-                try: 
-                    proxy = next(self.proxy_pool)
-                    self.vinted_client.set_proxy(proxy)
-                    if self.vinted_client.failed_attempts <= 2:
-                        return True
-                except Exception as proxy_err:
-                    logging.error(f"Error switching proxy for Vinted: {proxy_err}")
+            if "403 Client Error: Forbidden" in str(e) or isinstance(e, network_errors):
+                proxy = next(self.proxy_pool)
+                self.vinted_client.set_proxy(proxy)
+                if self.vinted_client.failed_attempts <= 2:
+                    return True
             elif "401 Client Error: Unauthorized" in str(e):
                 self.vinted_client.randomize_user_agent()
                 if self.vinted_client.failed_attempts <= 2:
@@ -379,14 +378,11 @@ To get started, send me a Vinted search URL or use /add <url>
                 self.vinted_client.set_proxy(proxy)
 
         elif self.leboncoin_client.validate_url(url):
-            if isinstance(e, lbc_exceptions.DatadomeError):
-                try:
-                    proxy = next(self.proxy_pool)
-                    self.leboncoin_client.set_proxy(proxy)
-                    if self.leboncoin_client.failed_attempts <= 2:
-                        return True
-                except Exception as proxy_err:
-                    logging.error(f"Error switching proxy for LeBonCoin: {proxy_err}")
+            if isinstance(e, (lbc_exceptions.DatadomeError, *network_errors)):
+                proxy = next(self.proxy_pool)
+                self.leboncoin_client.set_proxy(proxy)
+                if self.leboncoin_client.failed_attempts <= 2:
+                    return True
             else:
                 proxy = next(self.proxy_pool)
                 self.leboncoin_client.set_proxy(proxy)

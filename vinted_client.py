@@ -66,6 +66,7 @@ class VintedClient:
             )
 
     def __init__(self, config_manager=None, randomize_ua: bool = False):
+        self.vinted = Vinted()
         self._setup_session()
         self.last_check_times = {}  # Track last check time for each URL
         self.failed_attempts = 0
