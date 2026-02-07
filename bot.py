@@ -106,9 +106,8 @@ class VintedBot:
 
     def _test_proxy(self, proxy: Dict[str, str]) -> bool:
         try:
-            requests.get("https://api.ipify.org", proxies=proxy, timeout=5)
-            return True
-        except Exception:
+            return requests.get("https://ifconfig.me/ip", proxies=proxy, timeout=5).status_code == 200
+        except:
             return False
 
     def _get_next_working_proxy(self) -> Optional[Dict[str, str]]:
