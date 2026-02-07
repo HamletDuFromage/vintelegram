@@ -431,24 +431,24 @@ To get started, send me a Vinted search URL or use /add <url>
                             for item in new_items:
                                 message = client.format_item_message(item)
                                 try:
-                                    await context.bot.send_photo(
+                                    res = await context.bot.send_photo(
                                         chat_id=chat_id,
                                         photo=item.photo_url,
                                         caption=f"🆕 New item found!\n\n{message}",
                                         parse_mode='Markdown'
                                     )
+                                    logger.info(f"Telegram send result: {res}")
                                 except Exception as e:
                                     logger.error(f"Error sending photo for item {item.id}: {e}")
-                                    await context.bot.send_photo(
+                                    res = await context.bot.send_photo(
                                         chat_id=chat_id,
                                         photo=PICTURE_NOT_FOUND,
                                         caption=f"🆕 New item found!\n\n{message}",
                                         parse_mode='Markdown'
                                     )
+                                    logger.info(f"Telegram fallback send result: {res}")
                                 # Small delay to avoid rate limiting
                                 await asyncio.sleep(1)
-                            
-                            logger.info(f"Sent {len(new_items)} new item notifications to chat {chat_id}")
                     
                     except Exception as e:
                         if await self.handle_error(context, chat_id, url, e):

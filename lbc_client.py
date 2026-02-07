@@ -61,7 +61,7 @@ class LeBonCoinClient:
                 )
 
     def __init__(self, config_manager=None):
-        self.lbc = lbc.Client()
+        self.lbc = lbc.Client(timeout=10)
         self.last_check_times = {}  # Track last check time for each URL
         self.failed_attempts = 0
         self.config_manager = config_manager
@@ -82,7 +82,7 @@ class LeBonCoinClient:
             password=p.password,
             scheme="https",
         )
-        self.lbc = lbc.Client(proxy=proxy_object)
+        self.lbc = lbc.Client(proxy=proxy_object, timeout=10)
         #ip = self.lbc.session.get("https://api.ipify.org", timeout=10).text
         logger.info(f"Switched to new proxy: {proxy}")
         #return ip

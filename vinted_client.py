@@ -9,7 +9,19 @@ import ua_generator
 from dataclasses import dataclass
 import argparse
 
+import requests
+from requests.adapters import HTTPAdapter
+
 logger = logging.getLogger(__name__)
+
+class TimeoutHTTPAdapter(HTTPAdapter):
+    def __init__(self, *args, **kwargs):
+        self.timeout = kwargs.pop("timeout", 10)
+        super().__init__(*args, **kwargs)
+
+    def send(self, request, **kwargs):
+        kwargs.setdefault("timeout", self.timeout)
+        return super().send(request, **kwargs)
 
 class VintedClient:
     @dataclass
@@ -55,6 +67,12 @@ class VintedClient:
 
     def __init__(self, config_manager=None, randomize_ua: bool = False):
         self.vinted = Vinted()
+        
+        # Mount timeout adapter
+        adapter = TimeoutHTTPAdapter(timeout=10)
+        requester.session.mount("https://", adapter)
+        requester.session.mount("http://", adapter)
+        
         self.last_check_times = {}  # Track last check time for each URL
         self.failed_attempts = 0
         self.config_manager = config_manager
@@ -62,6 +80,10 @@ class VintedClient:
 
     def refresh_session(self):
         self.vinted = Vinted()
+        # Mount timeout adapter
+        adapter = TimeoutHTTPAdapter(timeout=10)
+        requester.session.mount("https://", adapter)
+        requester.session.mount("http://", adapter)
 
     def randomize_user_agent(self):
         requester.session = requests.Session()
