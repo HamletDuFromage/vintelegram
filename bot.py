@@ -106,7 +106,7 @@ class VintedBot:
 
     def _test_proxy(self, proxy: Dict[str, str]) -> bool:
         try:
-            return requests.get("https://ifconfig.me/ip", proxies=proxy, timeout=5).status_code == 200
+            return requests.get("https://example.com", proxies=proxy, timeout=5).status_code == 200
         except:
             return False
 
