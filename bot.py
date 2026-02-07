@@ -103,6 +103,26 @@ class VintedBot:
             # Add job to cleanup old seen items daily
             #self.application.job_queue.run_daily(self.cleanup_job, time=datetime.time(hour=3, minute=0))
 
+    def _test_proxy(self, proxy: Dict[str, str]) -> bool:
+        try:
+            requests.get("https://api.ipify.org", proxies=proxy, timeout=5)
+            return True
+        except Exception:
+            return False
+
+    def _get_next_working_proxy(self) -> Optional[Dict[str, str]]:
+        """Try proxies until we find a working one or run out."""
+        while self.proxies:
+            proxy = next(self.proxy_pool)
+            if self._test_proxy(proxy):
+                return proxy
+            
+            logger.warning(f"Removing dead proxy: {proxy.get('https')}")
+            self.proxies.remove(proxy)
+            self.proxy_pool = cycle(self.proxies)
+        logger.error("All proxies exhausted!")
+        return None
+
 
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /start command."""
@@ -365,27 +385,31 @@ To get started, send me a Vinted search URL or use /add <url>
         
         if self.vinted_client.validate_url(url):
             if "403 Client Error: Forbidden" in str(e) or isinstance(e, network_errors):
-                proxy = next(self.proxy_pool)
-                self.vinted_client.set_proxy(proxy)
-                if self.vinted_client.failed_attempts <= 2:
-                    return True
+                proxy = self._get_next_working_proxy()
+                if proxy:
+                    self.vinted_client.set_proxy(proxy)
+                    if self.vinted_client.failed_attempts <= 2:
+                        return True
             elif "401 Client Error: Unauthorized" in str(e):
                 self.vinted_client.randomize_user_agent()
                 if self.vinted_client.failed_attempts <= 2:
                     return True
             else:
-                proxy = next(self.proxy_pool)
-                self.vinted_client.set_proxy(proxy)
+                proxy = self._get_next_working_proxy()
+                if proxy:
+                    self.vinted_client.set_proxy(proxy)
 
         elif self.leboncoin_client.validate_url(url):
             if isinstance(e, (lbc_exceptions.DatadomeError, *network_errors)):
-                proxy = next(self.proxy_pool)
-                self.leboncoin_client.set_proxy(proxy)
-                if self.leboncoin_client.failed_attempts <= 2:
-                    return True
+                proxy = self._get_next_working_proxy()
+                if proxy:
+                    self.leboncoin_client.set_proxy(proxy)
+                    if self.leboncoin_client.failed_attempts <= 2:
+                        return True
             else:
-                proxy = next(self.proxy_pool)
-                self.leboncoin_client.set_proxy(proxy)
+                proxy = self._get_next_working_proxy()
+                if proxy:
+                    self.leboncoin_client.set_proxy(proxy)
 
         message = f"Error {type(e)} for {url}: {e}"
         await context.bot.send_message(
