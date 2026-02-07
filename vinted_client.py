@@ -66,27 +66,27 @@ class VintedClient:
             )
 
     def __init__(self, config_manager=None, randomize_ua: bool = False):
-        self.vinted = Vinted()
-        
-        # Mount timeout adapter
-        adapter = TimeoutHTTPAdapter(timeout=10)
-        requester.session.mount("https://", adapter)
-        requester.session.mount("http://", adapter)
-        
+        self._setup_session()
         self.last_check_times = {}  # Track last check time for each URL
         self.failed_attempts = 0
         self.config_manager = config_manager
         self.randomize_ua = randomize_ua
 
-    def refresh_session(self):
-        self.vinted = Vinted()
-        # Mount timeout adapter
+    def _setup_session(self):
+        """Setup requester session with timeouts."""
+        # requester.session is a global session in pyVinted
+        # Ensure it has the timeout adapter
         adapter = TimeoutHTTPAdapter(timeout=10)
         requester.session.mount("https://", adapter)
         requester.session.mount("http://", adapter)
 
+    def refresh_session(self):
+        self.vinted = Vinted()
+        self._setup_session()
+
     def randomize_user_agent(self):
         requester.session = requests.Session()
+        self._setup_session()
         requester.HEADER["User-Agent"] = ua_generator.generate(device='desktop', platform='windows').text
         requester.session.headers.update(requester.HEADER)
 
