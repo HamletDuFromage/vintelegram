@@ -106,7 +106,7 @@ class VintedBot:
 
     def _test_proxy(self, proxy: Dict[str, str]) -> bool:
         try:
-            response = requests.get("https://api.ipify.org", proxies=proxy, timeout=7)
+            requests.get("https://example.com", proxies=proxy, timeout=7)
             return True
         except Exception as e:
             logger.warning(f"Proxy test failed for {proxy.get('https')}: {type(e).__name__}: {e}")
