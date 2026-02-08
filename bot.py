@@ -48,7 +48,7 @@ def load_proxies(path):
                 continue
             proxies.append({
                 "http":  f"http://{line}:89",
-                "https": f"https://{line}:90",
+                "https": f"http://{line}:90",
             })
     print(f"[INFO] Loaded {len(proxies)} proxies from '{path}'")
     random.shuffle(proxies)
@@ -106,9 +106,10 @@ class VintedBot:
 
     def _test_proxy(self, proxy: Dict[str, str]) -> bool:
         try:
-            requests.get("https://example.com", proxies=proxy, timeout=5)
+            response = requests.get("https://api.ipify.org", proxies=proxy, timeout=7)
             return True
-        except:
+        except Exception as e:
+            logger.warning(f"Proxy test failed for {proxy.get('https')}: {type(e).__name__}: {e}")
             return False
 
     def _get_next_working_proxy(self) -> Optional[Dict[str, str]]:

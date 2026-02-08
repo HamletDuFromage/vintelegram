@@ -8,6 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+RUN apk add --no-cache ca-certificates
 RUN mkdir -p /app/data
 
 ENV PYTHONPATH=/app
