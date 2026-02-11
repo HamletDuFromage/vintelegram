@@ -152,9 +152,9 @@ class VintedClient:
             return {"error": f"Error formatting item"}
 
     def format_item_message(self, item: "VintedClient.Item") -> str:
-        message = f"🛍️ *{item.title}*\n"
-        message += f"🏷️ Brand: {item.brand}\n"
+        message = f"🆕 *{item.title}*\n"
         message += f"💰 Price: {item.price} {item.currency}\n"
+        message += f"🏷️ Brand: {item.brand}\n"
 
         if item.url:
             message += f"🔗 [View on Vinted]({item.url})\n"

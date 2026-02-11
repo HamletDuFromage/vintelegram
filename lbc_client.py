@@ -131,9 +131,9 @@ class LeBonCoinClient:
         """
         Format an Item instance into a Telegram message.
         """
-        message = f"🛍️ *{item.title}*\n"
-        message += f"🏷️ Brand: {item.brand}\n"
+        message = f"🆕 *{item.title}*\n"
         message += f"💰 Price: {item.price} {item.currency}\n"
+        message += f"🏷️ Brand: {item.brand}\n"
 
         if item.url:
             message += f"🔗 [View on Leboncoin]({item.url})\n"

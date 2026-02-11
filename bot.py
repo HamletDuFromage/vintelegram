@@ -463,7 +463,7 @@ To get started, send me a Vinted search URL or use /add <url>
                                         res = await context.bot.send_photo(
                                             chat_id=chat_id,
                                             photo=item.photo_url,
-                                            caption=f"🆕 New item found!\n\n{message}",
+                                            caption=message,
                                             parse_mode='Markdown'
                                         )
                                         logger.info(f"Telegram send result: {res}")
@@ -472,7 +472,7 @@ To get started, send me a Vinted search URL or use /add <url>
                                         res = await context.bot.send_photo(
                                             chat_id=chat_id,
                                             photo=PICTURE_NOT_FOUND,
-                                            caption=f"🆕 New item found!\n\n{message}",
+                                            caption=message,
                                             parse_mode='Markdown'
                                         )
                                         logger.info(f"Telegram fallback send result: {res}")
