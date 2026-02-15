@@ -3,3 +3,4 @@ git+https://github.com/herissondev/vinted-api-wrapper.git#egg=pyVinted
 python-dotenv
 lbc
 ua_generator
+urllib3<2.0.0

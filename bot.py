@@ -13,6 +13,10 @@ from vinted_client import VintedClient
 from lbc_client import LeBonCoinClient
 from pyVinted.requester import requester
 from itertools import cycle
+import urllib3
+
+# Suppress insecure request warnings
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 from dotenv import load_dotenv
 
@@ -33,7 +37,7 @@ logging.getLogger('apscheduler').setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
-PROXY_FILE = "/app/data/proxies.txt"
+PROXY_FILE = "data/proxies.txt"
 PICTURE_NOT_FOUND = "AgACAgQAAxkDAAIGaWk2353DBhtNqJ1SB5pydMWn3viPAAKEC2sbCCy9UbvfKmXhtgbdAQADAgADeAADNgQ"
 
 def load_proxies(path):
@@ -106,7 +110,8 @@ class VintedBot:
 
     def _test_proxy(self, proxy: Dict[str, str]) -> bool:
         try:
-            requests.get("https://example.com", proxies=proxy, timeout=7)
+            r = requests.get("https://example.com", proxies=proxy, timeout=7, verify=False)
+            logger.info(f"Proxy test success: {r.status_code}")
             return True
         except Exception as e:
             logger.warning(f"Proxy test failed for {proxy.get('https')}: {type(e).__name__}: {e}")
@@ -538,4 +543,6 @@ To get started, send me a Vinted search URL or use /add <url>
 
 if __name__ == "__main__":
     bot = VintedBot()
+    #bot._get_next_working_proxy()
+
     bot.run() 
