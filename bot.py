@@ -66,6 +66,7 @@ class VintedBot:
         self.vinted_client = VintedClient(self.config_manager)
         self.leboncoin_client = LeBonCoinClient(self.config_manager)
         self.bot_token = self.config_manager.get_bot_token()
+        self.urls_checked = 0
 
         self.commands = {
             "start": self.start_command,
@@ -272,6 +273,7 @@ To get started, send me a Vinted search URL or use /add <url>
         
         try:
             items = await asyncio.to_thread(client.search_items, url, max_items=5)
+            logger.info(f"Found {len(items)} items for URL: {url}")
             
             if not items:
                 await update.message.reply_text("❌ No items found for this search.")  # type: ignore
@@ -452,6 +454,10 @@ To get started, send me a Vinted search URL or use /add <url>
                         else:
                             continue
 
+                        self.urls_checked += 1
+                        if self.urls_checked % 100 == 0:
+                            logger.info(f"Checked {self.urls_checked} URLs")
+
                         new_items = await asyncio.to_thread(
                             client.get_new_items,
                             url, 
@@ -461,6 +467,7 @@ To get started, send me a Vinted search URL or use /add <url>
                         
                         if new_items:
                             # Send notifications for new items
+                            logger.debug(f"Found {len(new_items)} new items for URL: {url}")
                             for item in new_items:
                                 message = client.format_item_message(item)
                                 try:
@@ -471,7 +478,7 @@ To get started, send me a Vinted search URL or use /add <url>
                                             caption=message,
                                             parse_mode='Markdown'
                                         )
-                                        logger.info(f"Telegram send result: {res}")
+                                        logger.debug(f"Telegram send result: {res}")
                                     except error.TelegramError as e:
                                         logger.error(f"Error sending photo for item {item.id}: {e}")
                                         res = await context.bot.send_photo(
@@ -480,7 +487,7 @@ To get started, send me a Vinted search URL or use /add <url>
                                             caption=message,
                                             parse_mode='Markdown'
                                         )
-                                        logger.info(f"Telegram fallback send result: {res}")
+                                        logger.debug(f"Telegram fallback send result: {res}")
                                 except Exception as e:
                                     logger.warning(f"Couldn't send item {item.id} to chat {chat_id}: {e}")
                                 # Small delay to avoid rate limiting

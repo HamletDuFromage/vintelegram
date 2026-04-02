@@ -105,7 +105,6 @@ class VintedClient:
         res = self.vinted.items.search(url, max_items, 1)
         items = [VintedClient.Item.from_raw(item, search_url=url) for item in res]
 
-        logger.info(f"Found {len(items)} items for URL: {url}")
         self.failed_attempts = 0
         return items
     
@@ -130,7 +129,6 @@ class VintedClient:
                 # Mark as seen with URL tracking
                 self.config_manager.add_seen_item(chat_id, str(item.id), url)
         
-        logger.info(f"Found {len(new_items)} new items for URL: {url}")
         return new_items
     
     def format_item_dict(self, item: Any) -> Dict[str, Any]:

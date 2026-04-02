@@ -93,7 +93,6 @@ class LeBonCoinClient:
         url = unquote(url)
         items = self.lbc.search(url, limit=max_items, page=1)
         
-        logger.info(f"Found {len(items.ads)} items for URL: {url}")
         res = [
             item for item in items.ads
             if not any(
@@ -124,7 +123,6 @@ class LeBonCoinClient:
                 # Mark as seen with URL tracking
                 self.config_manager.add_seen_item(chat_id, str(item.id), url)
         
-        logger.info(f"Found {len(new_items)} new items for URL: {url}")
         return new_items
     
     def format_item_message(self, item: "LeBonCoinClient.Item") -> str:
