@@ -67,6 +67,7 @@ class VintedBot:
         self.leboncoin_client = LeBonCoinClient(self.config_manager)
         self.bot_token = self.config_manager.get_bot_token()
         self.urls_checked = 0
+        self.check_jobs = 0
 
         self.commands = {
             "start": self.start_command,
@@ -443,7 +444,9 @@ To get started, send me a Vinted search URL or use /add <url>
                 if (not search_urls or 
                     chat_config.get('paused', False)):
                     continue
-                
+                self.check_jobs += 1
+                if self.check_jobs % 12 == 0:
+                    logger.info(f"Checked {self.urls_checked} URLs in {self.check_jobs} jobs")
                 while search_urls:
                     url = search_urls.pop(0)
                     try:
@@ -455,9 +458,6 @@ To get started, send me a Vinted search URL or use /add <url>
                             continue
 
                         self.urls_checked += 1
-                        if self.urls_checked % 100 == 0:
-                            logger.info(f"Checked {self.urls_checked} URLs")
-
                         new_items = await asyncio.to_thread(
                             client.get_new_items,
                             url, 
