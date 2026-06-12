@@ -97,7 +97,7 @@ class LeBonCoinClient:
             item for item in items.ads
             if not any(
                 attr.key == "transaction_status" and (attr.value == "pending" or attr.value == "sold")
-                for attr in item.attributes
+                for attr in (item.attributes.values() if isinstance(item.attributes, dict) else item.attributes)
             )
         ]
         items = [LeBonCoinClient.Item.from_raw(item, search_url=url) for item in res]
