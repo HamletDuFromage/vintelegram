@@ -38,21 +38,57 @@ class VintedClient:
 
         @classmethod
         def from_raw(cls, item: Any, search_url: str = ""):
-            """Create an Item from a raw object."""
+            """Create an Item from a raw object or dict."""
             try:
+                if isinstance(item, dict):
+                    price_info = item.get("price")
+                    if isinstance(price_info, dict):
+                        price = price_info.get("amount")
+                        currency = price_info.get("currency_code", "EUR")
+                    else:
+                        price = price_info
+                        currency = item.get("currency", "EUR")
+
+                    photo_info = item.get("photo")
+                    photo_url = photo_info.get("url", "") if isinstance(photo_info, dict) else (photo_info or "")
+
+                    url = item.get("url", "")
+                    if url and url.startswith("/"):
+                        url = f"https://www.vinted.fr{url}"
+
+                    brand = (
+                        item.get("brand_title")
+                        or (item.get("item_box") or {}).get("first_line")
+                        or (item.get("brand_dto") or {}).get("title")
+                        or "Unknown brand"
+                    )
+
+                    return cls(
+                        title=item.get("title", ""),
+                        price=price,
+                        currency=currency,
+                        url=url,
+                        photo_url=photo_url,
+                        brand=brand,
+                        created_at=datetime.now(timezone.utc),
+                        id=str(item.get("id", "")),
+                        search_url=search_url,
+                    )
+
                 return cls(
-                    title=item.title,
-                    price=item.price,
-                    currency=item.currency,
-                    url=item.url,
-                    photo_url=item.photo,
+                    title=getattr(item, "title", ""),
+                    price=getattr(item, "price", None),
+                    currency=getattr(item, "currency", "EUR"),
+                    url=getattr(item, "url", ""),
+                    photo_url=getattr(item, "photo", ""),
                     brand=getattr(item, "brand_title", "Unknown brand"),
-                    created_at=item.created_at_ts,
-                    id=item.id,
+                    created_at=getattr(item, "created_at_ts", datetime.now(timezone.utc)),
+                    id=str(getattr(item, "id", "")),
                     search_url=search_url,
                 )
             except Exception as e:
                 logger.error(f"Error creating Item: {e}")
+                fallback_id = str(item.get("id", "")) if isinstance(item, dict) else str(getattr(item, "id", ""))
                 return cls(
                     title="",
                     price=None,
@@ -61,9 +97,9 @@ class VintedClient:
                     photo_url="",
                     brand="Unknown brand",
                     created_at=datetime.min,
-                    id=item.id,
+                    id=fallback_id,
                     search_url=search_url,
-            )
+                )
 
     def __init__(self, config_manager=None, randomize_ua: bool = False):
         self.vinted = Vinted()
